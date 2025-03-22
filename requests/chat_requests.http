@@ -1,0 +1,4 @@
+POST http://localhost:4004/odata/v4/chat/Conversation
+Content-Type: application/json
+
+{"title": "Hello, how can I assist you today?"}

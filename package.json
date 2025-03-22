@@ -1,0 +1,145 @@
+{
+  "name": "ragcontracts",
+  "version": "1.0.0",
+  "description": "A simple CAP project.",
+  "repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@cap-js/hana": "^1",
+    "@sap-cloud-sdk/http-client": "^3.26.4",
+    "@sap-cloud-sdk/util": "^3.26.4",
+    "@sap/cds": "^8",
+    "@sap/low-code-event-handler": "^1.2.5",
+    "@sap/xsenv": ">=3.3.2 <3.3.3",
+    "@sap/xssec": "^4.4.0",
+    "express": "^4",
+    "hdb": "^0.19.12",
+    "passport": "^0.7.0",
+    "@sap/cds-compiler": "^4.6.2",
+    "@sap/cds-hana": "^2",
+    "basic-auth": "^2.0.1",
+    "cap-llm-plugin": "^1.4.4",
+    "cds-swagger-ui-express": "^0.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.4",
+    "downloadjs": "^1.4.7",
+    "langchain": "^0.2.19",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
+    "pdfkit": "^0.14.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@cap-js/cds-types": "^0.9.0",
+    "@cap-js/sqlite": "^1",
+    "@sap/dev-cap-tools": "^1.31.0",
+    "@sap/cds-dk": "^8",
+    "@sap/ux-specification": "^1.120.4",
+    "axios": "^1.5.1",
+    "chai": "^4.3.10",
+    "chai-as-promised": "^7.1.1",
+    "chai-http": "^4.4.0",
+    "chai-subset": "^1.6.0",
+    "hana-cli": "^3.202312.1",
+    "jest": "^29.7.0",
+    "mocha": "^10.3.0",
+    "rimraf": "^3.0.2"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "start-local": "npm run generate-entry-point && npm run cds-watch",
+    "generate-entry-point": "dev-cap-tools gen-entrypoint",
+    "cds-watch": "cds watch --open",
+    "watch-ragcontracts-ui": "cds watch --open ragcontracts-ui/webapp/index.html?sap-ui-xx-viewCache=false",
+    "undeploy": "cf undeploy ragcontracts --delete-services --delete-service-keys --delete-service-brokers",
+    "build": "rimraf resources mta_archives && mbt build --mtar archive",
+    "deploy": "cf deploy mta_archives/archive.mtar --retries 1",
+    "watch-ragcontracts.ui": "cds watch --open ragcontracts.ui/webapp/index.html?sap-ui-xx-viewCache=false"
+  },
+  "cds": {
+    "requires": {
+      "db": "hana",
+      "gen-ai-hub": {
+        "gpt-35-turbo": {
+          "destinationName": "GenAIHubDestination",
+          "deploymentUrl": "/v2/inference/deployments/de565250ba578e67",
+          "resourceGroup": "default",
+          "apiVersion": "2024-02-15-preview",
+          "modelName": "gpt-35-turbo"
+        },
+        "text-embedding-ada-002": {
+          "destinationName": "GenAIHubDestination",
+          "deploymentUrl": "/v2/inference/deployments/ded784f4215c2b52",
+          "resourceGroup": "default",
+          "apiVersion": "2024-02-15-preview",
+          "modelName": "text-embedding-ada-002"
+        }
+      },
+      "GenAIHubDestination": {
+        "kind": "rest",
+        "credentials": {
+          "destination": "genai-hub-destination",
+          "requestTimeout": "300000"
+        }
+      },
+      "[hybrid]": {
+        "db": "hana",
+        "cap-llm-plugin": {
+          "impl": "cap-llm-plugin/srv/cap-llm-plugin.js"
+        },
+        "destinations": true,
+        "auth": {
+          "passport": {
+            "strategy": "mock",
+            "users": {
+              "shridhar.s.jawane@in.ibm.com": {
+                "ID": "dummy.user@com",
+                "password": "initial"
+              }
+            }
+          }
+        }
+      },
+      "[production]": {
+        "auth": "xsuaa",
+        "db": "hana",
+        "cap-llm-plugin": {
+          "impl": "cap-llm-plugin/srv/cap-llm-plugin.js"
+        },
+        "destinations": true
+      },
+      "ZAPI_SCHED_AGRMT_PROCESS_SRV": {
+        "kind": "odata-v2",
+        "model": "srv/external/ZAPI_SCHED_AGRMT_PROCESS_SRV",
+        "[production]": {
+          "credentials": {
+            "destination": "S7B_4WAY",
+            "path": "/sap/opu/odata/sap/API_SCHED_AGRMT_PROCESS_SRV"
+          }
+        },
+        "csrf": true,
+        "csrfInBatch": true
+      },
+      "ZAPI_PURCHASEORDER_PROCESS_SRV": {
+        "kind": "odata-v2",
+        "model": "srv/external/ZAPI_PURCHASEORDER_PROCESS_SRV",
+        "[production]": {
+          "credentials": {
+            "destination": "S7B_4WAY",
+            "path": "/sap/opu/odata/sap/API_PURCHASEORDER_PROCESS_SRV"
+          }
+        },
+        "csrf": true,
+        "csrfInBatch": true
+      }
+    },
+    "sapux": [
+      "app/rag-contracts-ui"
+    ]
+  },
+  "lcap": true,
+  "sapux": [
+    "app/ragcontracts.ui"
+  ]
+}
